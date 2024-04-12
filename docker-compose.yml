@@ -1,0 +1,60 @@
+services:
+  be:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+    volumes:
+      - ./be:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=development
+    networks:
+      - network-app
+    command: sh -c "yarn && yarn run start:dev"
+
+  fe:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+    volumes:
+      - ./fe:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    networks:
+      - network-app
+    command: sh -c "yarn && yarn run dev"
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - network-app
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "82:80"
+    depends_on:
+      - be
+      - fe
+    networks:
+      - network-app
+
+networks:
+  network-app:
+    driver: bridge
+
+volumes:
+  db:
